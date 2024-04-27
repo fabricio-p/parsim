@@ -1,0 +1,7 @@
+.ccls-cache/
+.tup/
+tmp/
+*.o
+parsim
+raylib-5.0_linux_amd64.tar.gz
+raylib-5.0_linux_amd64/
