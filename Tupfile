@@ -1,0 +1,11 @@
+CC = gcc
+CXX = g++
+CFLAGS = -Wall -Werror -Wextra -pedantic -I./raylib-5.0_linux_amd64/include -D_DEFAULT_SOURCE -O0 -ggdb
+CXXFLAGS = -Wall -Werror -Wextra -pedantic -std=c++17 -I./raylib-5.0_linux_amd64/include -D_DEFAULT_SOURCE -O0 -ggdb -Wno-missing-field-initializers
+LDFLAGS = -L./raylib-5.0_linux_amd64/lib -lraylib -lGL -lm -lpthread -ldl -lrt
+EXEC = parsim
+
+: foreach *.cc |> $(CXX) $(CXXFLAGS) -c %f -o %o |> %B.cc.o
+# : foreach *.cc |> echo $f >> foobar |> foobar
+: foreach *.c |> $(CC) $(CFLAGS) -o $o -c $f |> $B.c.o
+: *.o |> $(CXX) %f -o %o $(LDFLAGS) |> $(EXEC)
