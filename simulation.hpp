@@ -24,8 +24,10 @@ public:
 
     QuadTree tree;
     float theta;
+    Vector2 pointer;
+    Vector2 referencePoint = pointer;
     float gamma = 6.674e-10;
-    float radiusScale = 1.f;
+    float scale = 1.f;
     Vector2 externalForce = {0.f, 0.f};
 
     std::vector<MaterialInfo> materialsTable;
@@ -33,7 +35,8 @@ public:
     Simulation(
         std::vector<MaterialInfo> materialsTable,
         Rectangle viewport,
-        float _theta
+        float _theta,
+        Vector2 _pointer = {0.f, 0.f}
     );
     void add(
         Vector2 position,

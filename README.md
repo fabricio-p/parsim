@@ -8,3 +8,5 @@ A visual particle simulation using the Barnes-Hut algorithm with quad-trees for 
 - [x] Implement gravity
 - [ ] Collision mechanism
 - [ ] Zooming
+    - [x] Make it work
+    - [ ] Make it work with the pointer/cross

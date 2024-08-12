@@ -5,6 +5,7 @@
 #include <tuple>
 #include <functional>
 #include <sstream>
+#include <iomanip>
 
 #include <raylib.h>
 
@@ -13,7 +14,7 @@
 
 #include <iostream>
 
-// #define DEBUGGING
+#define DEBUGGING
 
 #define DUMP_FR(expr)                                               \
     std::cerr<<"["<<__FILE__<<":"<<__FUNCTION__<<":"<<__LINE__<<"] "\
@@ -40,58 +41,52 @@ int main(void) {
     SetWindowMonitor(GetCurrentMonitor());
 
     Rectangle viewport;
-    viewport.x = -500.f;
-    viewport.y = -500.f;
-    viewport.width = GetScreenWidth() + 500.f;
-    viewport.height = GetScreenHeight() + 500.f;
+    viewport.x = -GetScreenWidth() * 3.f;
+    viewport.y = -GetScreenHeight() * 3.f;
+    viewport.width = GetScreenWidth() * 6.f;
+    viewport.height = GetScreenHeight() * 6.f;
     Simulation simulation(
         {
             MaterialInfo {"A", 2.e8f},
             MaterialInfo {"B", 1.5e3f},
         },
         viewport,
-        0.5f
+        0.5f,
+        Vector2 {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f}
     );
+    simulation.scale = 0.2f;
 
-    Vector2 offset = {450.f, 20.f};
-    float velocityScale = 7.5f;
+    Vector2 center = {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f};
+    // float velocityScale = 7.5f;
 
     simulation.add(
-        Vector2 {100.f, 300.f} + offset,
-        Vector2 {0.f, 0.f} * velocityScale,
-        60.f,
+        center,
+        Vector2 {0.f, 0.f},
+        250.f,
         YELLOW,
         0
     );
 
     simulation.add(
-        Vector2 {220.f, 300.f} + offset,
-        Vector2 {0.f, -1.5f} * velocityScale,
-        6.f,
+        center + Vector2 {200.f + 400.f, 0.f},
+        Vector2 {0.f, -25.f},
+        10.f,
         GRAY,
         1
     );
 
     simulation.add(
-        Vector2 {320.f, 300.f} + offset,
-        Vector2 {0.f, -1.6f} * velocityScale,
-        15.f,
+        center + Vector2 {200.f + 600.f, 0.f},
+        Vector2 {0.f, -35.f},
+        22.f,
         RED,
         1
     );
 
     simulation.add(
-        Vector2 {175.f, 300.f} + offset,
-        Vector2 {0.f, -2.88} * velocityScale,
-        10.f,
-        GREEN,
-        1
-    );
-
-    simulation.add(
-        Vector2 {420.f, 300.f} + offset,
-        Vector2 {0.f, -1.6f} * velocityScale,
-        20.f,
+        center + Vector2 {200.f + 1500.f, 0.f},
+        Vector2 {0.f, -25.f},
+        30.f,
         BLUE,
         1
     );
@@ -114,7 +109,12 @@ int main(void) {
             size_t stop : 1;
             size_t faster : 1;
             size_t slower : 1;
-        } commands = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+            size_t ptrUp : 1;
+            size_t ptrDown : 1;
+            size_t ptrLeft : 1;
+            size_t ptrRight : 1;
+        } commands = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
         commands.zoomIn =
             IsKeyDown(KEY_EQUAL) && IsKeyDown(KEY_LEFT_SHIFT);
         commands.zoomOut =
@@ -126,16 +126,23 @@ int main(void) {
         commands.stop = IsKeyDown(KEY_SPACE);
         commands.faster = IsKeyDown(KEY_RIGHT_BRACKET);
         commands.slower = IsKeyDown(KEY_LEFT_BRACKET);
+        commands.ptrUp = IsKeyDown(KEY_W);
+        commands.ptrDown = IsKeyDown(KEY_S);
+        commands.ptrLeft = IsKeyDown(KEY_A);
+        commands.ptrRight = IsKeyDown(KEY_D);
 
         // TODO: Move this inside the simulation
+        constexpr float const
+            forceAmount = 1.e14f
+        ,   pointerDX = 5.f
+        ;
+        simulation.externalForce = {0.f, 0.f};
         if (commands.zoomIn) {
-            simulation.radiusScale += 0.01f;
+            simulation.scale += 0.01f;
         }
         if (commands.zoomOut) {
-            simulation.radiusScale -= 0.01f;
+            simulation.scale -= 0.01f;
         }
-        constexpr float const forceAmount = 1.e12f;
-        simulation.externalForce = {0.f, 0.f};
         if (commands.up) {
             simulation.externalForce.y -= forceAmount;
         }
@@ -148,6 +155,7 @@ int main(void) {
         if (commands.right) {
             simulation.externalForce.x += forceAmount;
         }
+
         if (commands.stop) {
             simulation.externalForce = {0.f, 0.f};
             simulation.velocities[0] = {0.f, 0.f};
@@ -158,14 +166,37 @@ int main(void) {
         if (commands.slower) {
             dt /= 1.2f;
         }
+
+        if (commands.ptrUp) {
+            simulation.pointer.y -= pointerDX;
+        }
+        if (commands.ptrDown) {
+            simulation.pointer.y += pointerDX;
+        }
+        if (commands.ptrLeft) {
+            simulation.pointer.x -= pointerDX;
+        }
+        if (commands.ptrRight) {
+            simulation.pointer.x += pointerDX;
+        }
+
+        if (commands.zoomIn || commands.zoomOut) {
+            simulation.referencePoint = simulation.pointer;
+        }
+
         std::ostringstream ss;
-        ss<<"dt = "<<dt;
-        std::string message = ss.str();
+        ss<<"dt = "<<std::fixed<<std::setprecision(6)<<dt;
+        std::string dtMsg = ss.str();
+        ss.seekp(0);
+        ss.clear();
+        ss<<"scale = "<<std::fixed<<std::setprecision(2)<<simulation.scale;
+        std::string scaleMsg = ss.str();
         BeginDrawing();
         simulation.update(dt);
         ClearBackground(RAYWHITE);
         simulation.draw();
-        DrawText(message.c_str(), 0, 0, 20, BLACK);
+        DrawText(dtMsg.c_str(), 5, 0, 20, BLACK);
+        DrawText(scaleMsg.c_str(), 5, 23, 20, BLACK);
         EndDrawing();
     }
     return 0;

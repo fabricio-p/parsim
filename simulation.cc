@@ -5,8 +5,14 @@ static float calcGravity(float G, float m1, float m2, float r);
 Simulation::Simulation(
     std::vector<MaterialInfo> materialsTable,
     Rectangle viewport,
-    float _theta
-) : tree(viewport), theta(_theta), materialsTable(materialsTable) {}
+    float _theta,
+    Vector2 _pointer
+)
+: tree(viewport)
+, theta(_theta)
+, pointer(_pointer)
+, referencePoint(_pointer)
+, materialsTable(materialsTable) {}
 
 void Simulation::add(
     Vector2 position,
@@ -42,11 +48,14 @@ void Simulation::update(float dt) {
 void Simulation::draw() const {
     for (auto const& node : tree.nodes) {
         Rectangle bounds = node.bounds;
+        Vector2 renderPosition = {bounds.x, bounds.y};
+        renderPosition =
+            referencePoint + (renderPosition - referencePoint) * scale;
         DrawRectangleLines(
-            bounds.x,
-            bounds.y,
-            bounds.width,
-            bounds.height,
+            renderPosition.x,
+            renderPosition.y,
+            bounds.width * scale,
+            bounds.height * scale,
             LIME
         );
     }
@@ -54,9 +63,27 @@ void Simulation::draw() const {
     auto radius = radii.begin();
     auto color = colors.begin();
     for (; position != positions.end(); position++, radius++, color++) {
-        DrawPoly(*position, 30, *radius * radiusScale, 0, *color);
+        Vector2 renderPosition = *position;
+        renderPosition =
+            referencePoint + (renderPosition - referencePoint) * scale;
+        DrawPoly(renderPosition, 30, *radius * scale, 0, *color);
         // DrawCircleV(*position, *radius, *color);
     }
+
+    DrawRectangle(
+        pointer.x - 10.f,
+        pointer.y - 2.5f,
+        20.f,
+        5.f,
+        GOLD
+    );
+    DrawRectangle(
+        pointer.x - 2.5f,
+        pointer.y - 10.f,
+        5.f,
+        20.f,
+        GOLD
+    );
 }
 
 void Simulation::buildQuadTree() {
@@ -133,14 +160,17 @@ Vector2 Simulation::calculateForceFor(Entity e, QuadTree::Node::Index i) {
     float const entityRadius = radii[e];
     // float const entityArea = entityRadius * entityRadius * M_PIf;
     // assume sphere
-    float const entityVolume =
-        4.f * M_PIf * entityRadius / 3.f * entityRadius * entityRadius;
-    float const entityMass =
-        entityVolume * materialsTable[materials[e]].density;
+    float const
+        entityVolume =
+            4.f * M_PIf * entityRadius / 3.f * entityRadius * entityRadius
+    ,   entityMass =
+            entityVolume * materialsTable[materials[e]].density;
 
     auto const massInfo = getNodeMassInfo(i);
-    float const regionWidth = node.bounds.width;
-    float const dist = abs(std::get<1>(massInfo) - position);
+    float const
+        regionWidth = node.bounds.width
+    ,   dist = abs(std::get<1>(massInfo) - position)
+    ;
 
     if (regionWidth / dist < theta || !node.hasChildren()) {
         float const
@@ -149,7 +179,8 @@ Vector2 Simulation::calculateForceFor(Entity e, QuadTree::Node::Index i) {
         ,   distCos = distX / dist
         ,   distSin = distY / dist
         ,   forceModulo =
-                calcGravity(gamma, entityMass, std::get<0>(massInfo), dist);
+                calcGravity(gamma, entityMass, std::get<0>(massInfo), dist)
+        ;
         force.y = forceModulo * distSin;
         force.x = forceModulo * distCos;
     } else {
