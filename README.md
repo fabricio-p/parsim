@@ -6,3 +6,5 @@ A visual particle simulation using the Barnes-Hut algorithm with quad-trees for 
 - [x] Write a Tupfile and a script that downloads raylib
 - [x] Implement basic movement
 - [x] Implement gravity
+- [ ] Collision mechanism
+- [ ] Zooming

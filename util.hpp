@@ -1,3 +1,5 @@
+#ifndef PARSIM_UTIL_H
+#define PARSIM_UTIL_H
 #include <iostream>
 #include <raymath.h>
 
@@ -33,3 +35,5 @@ static inline std::ostream& operator<<(std::ostream& o, Vector2 vec) {
 static inline float deg2rad(float deg) {
     return M_PIf * deg / 180.f;
 }
+
+#endif /* PARSIM_UTIL_H */

@@ -1,3 +1,6 @@
+#ifndef PARSIM_QUADTREE_H
+#define PARSIM_QUADTREE_H
+
 #include <array>
 #include <vector>
 #include <iostream>
@@ -76,3 +79,5 @@ static inline std::ostream&
 operator<<(std::ostream& o, QuadTree const& tree) {
     return tree.printNode(0, o)<<std::endl;
 }
+
+#endif /* PARSIM_QUADTREE_H */
