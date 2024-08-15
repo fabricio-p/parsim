@@ -5,26 +5,18 @@
 #include <tuple>
 #include <functional>
 #include <sstream>
+#include <fstream>
 #include <iomanip>
 
 #include <raylib.h>
 
 #include "simulation.hpp"
+#include "body_csv_reader.hpp"
+#define DEBUGGING
 #include "util.hpp"
 
 #include <iostream>
 
-#define DEBUGGING
-
-#define DUMP_FR(expr)                                               \
-    std::cerr<<"["<<__FILE__<<":"<<__FUNCTION__<<":"<<__LINE__<<"] "\
-             <<(#expr)<<" = "<<(expr)<<std::endl;
-
-#ifdef DEBUGGING
-#define DUMP(expr) DUMP_FR(expr)
-#else
-#define DUMP(expr)
-#endif
 
 // PHYSICS CONSTANTS {{{
 // PHYSICS CONSTANTS }}}
@@ -57,39 +49,17 @@ int main(void) {
     simulation.scale = 0.2f;
 
     Vector2 center = {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f};
-    // float velocityScale = 7.5f;
+    DUMP(center);
+    {
+        std::ifstream bodiesFile("bodies.csv");
+        DUMP(bodiesFile.is_open());
+        BodyCSVReader reader(bodiesFile);
+        reader.readInto(simulation);
+    }
 
-    simulation.add(
-        center,
-        Vector2 {0.f, 0.f},
-        250.f,
-        YELLOW,
-        0
-    );
-
-    simulation.add(
-        center + Vector2 {200.f + 400.f, 0.f},
-        Vector2 {0.f, -25.f},
-        10.f,
-        GRAY,
-        1
-    );
-
-    simulation.add(
-        center + Vector2 {200.f + 600.f, 0.f},
-        Vector2 {0.f, -35.f},
-        22.f,
-        RED,
-        1
-    );
-
-    simulation.add(
-        center + Vector2 {200.f + 1500.f, 0.f},
-        Vector2 {0.f, -25.f},
-        30.f,
-        BLUE,
-        1
-    );
+    for (auto& position : simulation.positions) {
+        position += center;
+    }
 
     if (!IsWindowReady()) {
         return 1;

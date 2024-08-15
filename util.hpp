@@ -36,4 +36,18 @@ static inline float deg2rad(float deg) {
     return M_PIf * deg / 180.f;
 }
 
+#define DUMP_FR(expr)                                               \
+    std::cerr<<"["<<__FILE__<<":"<<__FUNCTION__<<":"<<__LINE__<<"] "\
+             <<(#expr)<<" = "<<(expr)<<std::endl;
+
 #endif /* PARSIM_UTIL_H */
+
+#ifdef DUMP
+#undef DUMP
+#endif /* DUMP */
+
+#ifdef DEBUGGING
+#define DUMP(expr) DUMP_FR(expr)
+#else
+#define DUMP(expr)
+#endif
