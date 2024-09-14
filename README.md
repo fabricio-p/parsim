@@ -2,6 +2,9 @@
 
 A visual particle simulation using the Barnes-Hut algorithm with quad-trees for gravity written in C++ that uses [Raylib](https://github.com/raysan5/raylib/) for drawing and event handling.
 
+## Demo
+https://www.youtube.com/watch?v=2lkGilorzys
+
 ## TODO
 - [x] Write a Tupfile and a script that downloads raylib
 - [x] Implement basic movement

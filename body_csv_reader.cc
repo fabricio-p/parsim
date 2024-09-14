@@ -3,7 +3,6 @@
 #include <type_traits>
 
 #include "body_csv_reader.hpp"
-#define DEBUGGING
 #include "util.hpp"
 
 namespace {
@@ -35,7 +34,6 @@ void BodyCSVReader::readInto(Simulation& simulation) {
     // posx,posy,velx,vely,radius,color,material
     in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     for (;;) {
-        DUMP(in.eof());
         if (in.eof()) {
             break;
         }
@@ -66,7 +64,6 @@ void BodyCSVReader::readInto(Simulation& simulation) {
         } else {
             color = colorMap[colorDesc];
         }
-        DUMP(position);
         simulation.add(position, velocity, radius, color, material);
     }
 }
